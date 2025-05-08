@@ -68,7 +68,13 @@ public class CalculateSales {
 			// 一行ずつ読み込む
 			while((line = br.readLine()) != null) {
 				// ※ここの読み込み処理を変更してください。(処理内容1-2)
-				System.out.println(line);
+				String[] items = line.split(",");			// 1行ずつ読み込んだデータをカンマで区切って配列に入れる
+				branchNames.put(items[0], items[1]);		// 支店コードと支店名を保持するMapに値を追加
+				branchSales.put(items[0], 0L);				// 支店コードと売上金額を保持するMapに支店コードのみ追加(金額は後工程)
+
+				// ★テスト用
+				System.out.println(branchNames);
+				System.out.println(branchSales);
 			}
 
 		} catch(IOException e) {
