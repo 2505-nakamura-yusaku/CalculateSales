@@ -1,8 +1,10 @@
 package jp.alhinc.calculate_sales;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -147,9 +149,7 @@ public class CalculateSales {
 	 * 売り上げファイル読み込み処理
 	 *
 	 * @param フォルダパス
-	 * @param 支店コードと支店名を保持するMap
-	 * @param 支店コードと売上金額を保持するMap
-	 * @return 書き込み可否、
+	 * @return 読み込み可否、売り上げデータ
 	 */
 	private static Map<String, Map<String, String>> readSalesFile(String path)  {
 
@@ -210,6 +210,7 @@ public class CalculateSales {
 		}
 
 		Map<String, Map<String, String>> rtObject = new HashMap<>();
+		
 		rtObject.put(rtRead, salesData);
 
 		return rtObject;
@@ -226,6 +227,38 @@ public class CalculateSales {
 	 */
 	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames, Map<String, Long> branchSales) {
 		// ※ここに書き込み処理を作成してください。(処理内容3-1)
+		BufferedWriter bw = null;
+
+		try {
+			File file = new File(path, fileName);
+			FileWriter fw = new FileWriter(file);
+			bw = new BufferedWriter(fw);
+
+			for (String key : branchNames.keySet()) { 
+				//keyという変数には、Mapから取得したキーが代入されています。 
+				//拡張for文で繰り返されているので、1つ目のキーが取得できたら、 
+				//2つ目の取得...といったように、次々とkeyという変数に上書きされていきます。 
+				bw.write(key + "," + branchNames.get(key) + "," + branchSales.get(key));
+				bw.newLine(); 
+				
+				// ★テスト用
+				System.out.println(key + "," + branchNames.get(key) + "," + branchSales.get(key));
+			}
+		} catch(IOException e) {
+			System.out.println(UNKNOWN_ERROR);
+			return false;
+		} finally {
+			// ファイルを開いている場合
+			if(bw != null) {
+				try {
+					// ファイルを閉じる
+					bw.close();
+				} catch(IOException e) {
+					System.out.println(UNKNOWN_ERROR);
+					return false;
+				}
+			}
+		}
 
 		return true;
 	}
