@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CalculateSales {
@@ -37,8 +39,10 @@ public class CalculateSales {
 		}
 
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
-
-
+		// 売り上げファイル集計処理
+		if(!tallySalesFile(args[0], branchNames, branchSales)) {
+			return;
+		}
 
 		// 支店別集計ファイル書き込み処理
 		if(!writeFile(args[0], FILE_NAME_BRANCH_OUT, branchNames, branchSales)) {
@@ -72,10 +76,10 @@ public class CalculateSales {
 				branchNames.put(items[0], items[1]);		// 支店コードと支店名を保持するMapに値を追加
 				branchSales.put(items[0], 0L);				// 支店コードと売上金額を保持するMapに支店コードのみ追加(金額は後工程)
 
-				// ★テスト用
-				System.out.println(branchNames);
-				System.out.println(branchSales);
 			}
+		// ★テスト用
+		System.out.println(branchNames);
+		System.out.println(branchSales);
 
 		} catch(IOException e) {
 			System.out.println(UNKNOWN_ERROR);
@@ -93,6 +97,181 @@ public class CalculateSales {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * 売り上げファイル集計処理
+	 *
+	 * @param フォルダパス
+	 * @param 支店コードと支店名を保持するMap
+	 * @param 支店コードと売上金額を保持するMap
+	 * @return 読み込み可否
+	 */
+	private static boolean tallySalesFile(String path, Map<String, String> branchNames, Map<String, Long> branchSales) {
+//		BufferedReader br = null;
+//
+//		File files[] = new File(path).listFiles();	// ディレクトリ内のファイル名を取得
+//		List<File> rcdFiles = new ArrayList<>();
+//
+//		for(int i = 0; i < files.length ; i++) {
+//			//matches を使用してファイル名が「数字8桁.rcd」なのか判定します。
+//			if(files[i].getName().matches("[0-9]{1,8}+.rcd")) {
+//			    //trueの場合の処理
+//				//System.out.println(files[i].getName());
+//				rcdFiles.add(new File(path, files[i].getName()));
+//			}
+//		}
+//
+//		//System.out.println(rcdFiles.get(0));	// ★テスト用
+//
+//		Map<String,String> salesData = new HashMap<>();
+//
+//		//rcdFilesに複数の売上ファイルの情報を格納しているので、その数だけ繰り返します。
+//		for(int i = 0; i < rcdFiles.size(); i++) {
+//
+//			//支店定義ファイル読み込み(readFileメソッド)を参考に売上ファイルの中身を読み込みます。
+//			//売上ファイルの1行目には支店コード、2行目には売上金額が入っています。
+//			try {
+//
+//				File file = new File(path,rcdFiles.get(i).getName());
+//				FileReader fr = new FileReader(file);
+//				br = new BufferedReader(fr);
+//
+//				String line;
+//				List<String> items = new ArrayList<>();
+//
+//				// 一行ずつ読み込む
+//				while((line = br.readLine()) != null) {
+//
+//					items.add(line);			// 1行ずつ読み込んだデータをリストに入れる
+//				}
+//				salesData.put(items.get(0), items.get(1));		// 支店コードと支店名を保持するMapに値を追加
+//
+//			} catch(IOException e) {
+//				System.out.println(UNKNOWN_ERROR);
+//				return false;
+//			} finally {
+//				// ファイルを開いている場合
+//				if(br != null) {
+//					try {
+//						// ファイルを閉じる
+//						br.close();
+//					} catch(IOException e) {
+//						System.out.println(UNKNOWN_ERROR);
+//						return false;
+//					}
+//				}
+//			}
+//
+//		}
+
+		Map<String, Map<String, String>> rtObjet = new HashMap<>();
+
+		rtObjet = readSalesFile(path);
+
+		String rtRead = "false";
+
+		for (String key : rtObjet.keySet()) {
+			rtRead = key;
+			if(!Boolean.valueOf(key)) {
+				return false;
+			}
+		}
+
+		Map<String,String> salesData = new HashMap<>();
+
+		salesData = rtObjet.get(rtRead);
+
+		for (String key : salesData.keySet()) {
+
+			//売上ファイルから読み込んだ売上金額をMapに加算していくために、型の変換を行います。
+			long storeSale = Long.parseLong(salesData.get(key));
+
+			//読み込んだ売上金額を加算します。
+			Long saleAmount = branchSales.get(key) + storeSale;
+
+			//加算した売上⾦額をMapに追加します。
+			branchSales.put(key, storeSale);
+		}
+
+		// ★テスト用
+		System.out.println(branchSales + " : branchSales 支店コードと売上金額を保持するMap");
+
+		return true;
+	}
+
+	/**
+	 * 売り上げファイル読み込み処理
+	 *
+	 * @param フォルダパス
+	 * @param 支店コードと支店名を保持するMap
+	 * @param 支店コードと売上金額を保持するMap
+	 * @return 書き込み可否
+	 */
+	private static Map<String, Map<String, String>> readSalesFile(String path)  {
+
+		String rtRead = "true";
+
+		BufferedReader br = null;
+		File files[] = new File(path).listFiles();	// ディレクトリ内のファイル名を取得
+		List<File> rcdFiles = new ArrayList<>();
+
+		for(int i = 0; i < files.length ; i++) {
+			//matches を使用してファイル名が「数字8桁.rcd」なのか判定します。
+			if(files[i].getName().matches("[0-9]{1,8}+.rcd")) {
+			    //trueの場合の処理
+				//System.out.println(files[i].getName());
+				rcdFiles.add(new File(path, files[i].getName()));
+			}
+		}
+
+		//System.out.println(rcdFiles.get(0));	// ★テスト用
+
+		Map<String,String> salesData = new HashMap<>();
+
+		//rcdFilesに複数の売上ファイルの情報を格納しているので、その数だけ繰り返します。
+		for(int i = 0; i < rcdFiles.size(); i++) {
+
+			//支店定義ファイル読み込み(readFileメソッド)を参考に売上ファイルの中身を読み込みます。
+			//売上ファイルの1行目には支店コード、2行目には売上金額が入っています。
+			try {
+
+				File file = new File(path,rcdFiles.get(i).getName());
+				FileReader fr = new FileReader(file);
+				br = new BufferedReader(fr);
+
+				String line;
+				List<String> items = new ArrayList<>();
+
+				// 一行ずつ読み込む
+				while((line = br.readLine()) != null) {
+
+					items.add(line);			// 1行ずつ読み込んだデータをリストに入れる
+				}
+				salesData.put(items.get(0), items.get(1));		// 支店コードと支店名を保持するMapに値を追加
+
+			} catch(IOException e) {
+				System.out.println(UNKNOWN_ERROR);
+				rtRead = "false";
+			} finally {
+				// ファイルを開いている場合
+				if(br != null) {
+					try {
+						// ファイルを閉じる
+						br.close();
+					} catch(IOException e) {
+						System.out.println(UNKNOWN_ERROR);
+						rtRead = "false";
+					}
+				}
+			}
+
+		}
+
+		Map<String, Map<String, String>> rtObject = new HashMap<>();
+		rtObject.put(rtRead, salesData);
+
+		return rtObject;
 	}
 
 	/**
