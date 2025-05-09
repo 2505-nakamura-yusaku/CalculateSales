@@ -77,12 +77,11 @@ public class CalculateSales {
 				String[] items = line.split(",");			// 1行ずつ読み込んだデータをカンマで区切って配列に入れる
 				branchNames.put(items[0], items[1]);		// 支店コードと支店名を保持するMapに値を追加
 				branchSales.put(items[0], 0L);				// 支店コードと売上金額を保持するMapに支店コードのみ追加(金額は後工程)
-
 			}
-		// ★テスト用
-		System.out.println(branchNames);
-		System.out.println(branchSales);
 
+		// ★テスト用
+		// System.out.println(branchNames);
+		// System.out.println(branchSales);
 		} catch(IOException e) {
 			System.out.println(UNKNOWN_ERROR);
 			return false;
@@ -110,11 +109,9 @@ public class CalculateSales {
 	 * @return 読み込み可否
 	 */
 	private static boolean tallySalesFile(String path, Map<String, String> branchNames, Map<String, Long> branchSales) {
-
-		Map<String, Map<String, String>> rtObjet = new HashMap<>();	 // 読み込み処理の結果とデータを入れる
-		String rtRead = null;										 // 読み込み処理の結果
-
-		rtObjet = readSalesFile(path);		// 売り上げファイル読み込み処理
+		Map<String, List<String>> rtObjet = new HashMap<>();	 // 読み込み処理の結果とデータを入れる
+		String rtRead = null;									 // 読み込み処理の結果
+		rtObjet = readSalesFile(path);							 // 売り上げファイル読み込み処理
 
 		for (String key : rtObjet.keySet()) {
 			rtRead = key;
@@ -123,25 +120,33 @@ public class CalculateSales {
 			}
 		}
 
-		Map<String,String> salesData = new HashMap<>();
+		List<String> salesData = new ArrayList<>();
+		salesData = rtObjet.get(rtRead);		// 読み込んだ売り上げデータを取得
 
-		salesData = rtObjet.get(rtRead);
+		String strStoreCode = null;
 
-		for (String key : salesData.keySet()) {
+		for (int i = 0; i < salesData.size(); i++) {
+			long storeSale = 0;
 
-			//売上ファイルから読み込んだ売上金額をMapに加算していくために、型の変換を行います。
-			long storeSale = Long.parseLong(salesData.get(key));
+			if(i % 2 == 0) {
+				strStoreCode = salesData.get(i);
+			}else if(i % 2 == 1) {
+				//売上ファイルから読み込んだ売上金額をMapに加算していくために、型の変換を行います。
+				storeSale = Long.parseLong(salesData.get(i));
+			}
 
 			//読み込んだ売上金額を加算します。
-			Long saleAmount = branchSales.get(key) + storeSale;
-
+			Long saleAmount = branchSales.get(strStoreCode) + storeSale;
 			//加算した売上⾦額をMapに追加します。
-			branchSales.put(key, saleAmount);
+			branchSales.put(strStoreCode, saleAmount);
+
+			// ★テスト用
+			// System.out.println(strStoreCode + " : strStoreCode," + saleAmount + ":saleAmount");
+
 		}
 
 		// ★テスト用
-		System.out.println(branchSales + " : branchSales 支店コードと売上金額を保持するMap");
-
+		// System.out.println(branchSales + " : branchSales 支店コードと売上金額を保持するMap");
 		return true;
 	}
 
@@ -151,8 +156,7 @@ public class CalculateSales {
 	 * @param フォルダパス
 	 * @return 読み込み可否、売り上げデータ
 	 */
-	private static Map<String, Map<String, String>> readSalesFile(String path)  {
-
+	private static Map<String, List<String>> readSalesFile(String path)  {
 		String rtRead = "true";
 
 		BufferedReader br = null;
@@ -168,7 +172,7 @@ public class CalculateSales {
 			}
 		}
 
-		Map<String,String> salesData = new HashMap<>();
+		List<String> items = new ArrayList<>();
 
 		//rcdFilesに複数の売上ファイルの情報を格納しているので、その数だけ繰り返します。
 		for(int i = 0; i < rcdFiles.size(); i++) {
@@ -182,14 +186,13 @@ public class CalculateSales {
 				br = new BufferedReader(fr);
 
 				String line;
-				List<String> items = new ArrayList<>();
 
 				// 一行ずつ読み込む
 				while((line = br.readLine()) != null) {
 
 					items.add(line);			// 1行ずつ読み込んだデータをリストに入れる
+					// System.out.println(items);	// ★テスト
 				}
-				salesData.put(items.get(0), items.get(1));		// 支店コードと支店名を保持するMapに値を追加
 
 			} catch(IOException e) {
 				System.out.println(UNKNOWN_ERROR);
@@ -209,10 +212,10 @@ public class CalculateSales {
 
 		}
 
-		Map<String, Map<String, String>> rtObject = new HashMap<>();
-		
-		rtObject.put(rtRead, salesData);
+		Map<String, List<String>> rtObject = new HashMap<>();
 
+		rtObject.put(rtRead, items);
+		// System.out.println(rtObject);		// ★テスト
 		return rtObject;
 	}
 
@@ -234,15 +237,15 @@ public class CalculateSales {
 			FileWriter fw = new FileWriter(file);
 			bw = new BufferedWriter(fw);
 
-			for (String key : branchNames.keySet()) { 
-				//keyという変数には、Mapから取得したキーが代入されています。 
-				//拡張for文で繰り返されているので、1つ目のキーが取得できたら、 
-				//2つ目の取得...といったように、次々とkeyという変数に上書きされていきます。 
+			for (String key : branchNames.keySet()) {
+				//keyという変数には、Mapから取得したキーが代入されています。
+				//拡張for文で繰り返されているので、1つ目のキーが取得できたら、
+				//2つ目の取得...といったように、次々とkeyという変数に上書きされていきます。
 				bw.write(key + "," + branchNames.get(key) + "," + branchSales.get(key));
-				bw.newLine(); 
-				
+				bw.newLine();
+
 				// ★テスト用
-				System.out.println(key + "," + branchNames.get(key) + "," + branchSales.get(key));
+				// System.out.println(key + "," + branchNames.get(key) + "," + branchSales.get(key));
 			}
 		} catch(IOException e) {
 			System.out.println(UNKNOWN_ERROR);
