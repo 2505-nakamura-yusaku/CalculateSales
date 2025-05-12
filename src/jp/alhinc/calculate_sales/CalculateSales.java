@@ -115,8 +115,8 @@ public class CalculateSales {
 
 		for(int i = 0; i < files.length ; i++) {
 			//matches を使用してファイル名が「数字8桁.rcd」なのか判定します。
-			if(files[i].getName().matches("[0-9]{1,8}+.rcd")) {
-			    //trueの場合の処理
+			if(files[i].getName().matches("^[0-9]{8}\\.rcd$")) {
+				//trueの場合の処理
 				rcdFiles.add(files[i]);
 			}
 		}
@@ -127,9 +127,7 @@ public class CalculateSales {
 			//支店定義ファイル読み込み(readFileメソッド)を参考に売上ファイルの中身を読み込みます。
 			//売上ファイルの1行目には支店コード、2行目には売上金額が入っています。
 			try {
-
-				File file = new File(path,rcdFiles.get(i).getName());
-				FileReader fr = new FileReader(file);
+				FileReader fr = new FileReader(rcdFiles.get(i));
 				br = new BufferedReader(fr);
 
 				String line;
@@ -154,8 +152,11 @@ public class CalculateSales {
 				}
 			}
 		}
+		
+		// ★テスト用
+		System.out.println(items + " : items 支店コードと売上金額の抽出リスト");
 
-		String strStoreCode = null;
+		String strStoreCode = null;	// 出している理由
 
 		for (int i = 0; i < items.size(); i++) {
 			long storeSale = 0;
@@ -174,7 +175,7 @@ public class CalculateSales {
 		}
 
 		// ★テスト用
-		//System.out.println(branchSales + " : branchSales 支店コードと売上金額を保持するMap");
+		System.out.println(branchSales + " : branchSales 支店コードと売上金額を保持するMap");
 		return true;
 	}
 
