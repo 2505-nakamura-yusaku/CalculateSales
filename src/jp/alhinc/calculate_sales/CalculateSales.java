@@ -23,6 +23,7 @@ public class CalculateSales {
 	private static final String UNKNOWN_ERROR = "予期せぬエラーが発生しました";
 	private static final String FILE_NOT_EXIST = "支店定義ファイルが存在しません";
 	private static final String FILE_INVALID_FORMAT = "支店定義ファイルのフォーマットが不正です";
+	private static final String SALES_FILE_INVALID_FORMAT = "売上ファイル名が連番になっていません";
 
 	/**
 	 * メインメソッド
@@ -69,8 +70,8 @@ public class CalculateSales {
 		try {
 			File file = new File(path, fileName);
 
-			if(!file.exists()) {
-			    //支店定義ファイルが存在しない場合、コンソールにエラーメッセージを表示します。
+			if (!file.exists()) {
+				//支店定義ファイルが存在しない場合、コンソールにエラーメッセージを表示します。
 				System.out.println(FILE_NOT_EXIST);
 				return false;
 			}
@@ -84,9 +85,9 @@ public class CalculateSales {
 				// ※ここの読み込み処理を変更してください。(処理内容1-2)
 				String[] items = line.split(","); // 1行ずつ読み込んだデータをカンマで区切って配列に入れる
 
-				if((items.length != 2) || (!items[0].matches("^[0-9]{3}$"))){
-				    //支店定義ファイルの仕様が満たされていない場合、
-				    //エラーメッセージをコンソールに表示します。
+				if ((items.length != 2) || (!items[0].matches("^[0-9]{3}$"))) {
+					//支店定義ファイルの仕様が満たされていない場合、
+					//エラーメッセージをコンソールに表示します。
 					System.out.println(FILE_INVALID_FORMAT);
 					return false;
 				}
@@ -134,6 +135,22 @@ public class CalculateSales {
 			if (files[i].getName().matches("^[0-9]{8}\\.rcd$")) {
 				//trueの場合の処理
 				rcdFiles.add(files[i]);
+			}
+		}
+
+		//比較回数は売上ファイルの数よりも1回少ないため、
+		//繰り返し回数は売上ファイルのリストの数よりも1つ⼩さい数です。
+		for (int i = 0; i < rcdFiles.size() - 1; i++) {
+
+			int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
+			int latter = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0, 8));
+
+			//比較する2つのファイル名の先頭から数字の8文字を切り出し、int型に変換します。
+			if ((latter - former) != 1) {
+				//2つのファイル名の数字を比較して、差が1ではなかったら、
+				//エラーメッセージをコンソールに表示します。
+				System.out.println(SALES_FILE_INVALID_FORMAT);
+				return false;
 			}
 		}
 
@@ -222,7 +239,7 @@ public class CalculateSales {
 				bw.newLine();
 
 				// ★テスト用
-				// System.out.println(key + "," + branchNames.get(key) + "," + branchSales.get(key));
+				System.out.println(key + "," + branchNames.get(key) + "," + branchSales.get(key));
 			}
 		} catch (IOException e) {
 			System.out.println(UNKNOWN_ERROR);
