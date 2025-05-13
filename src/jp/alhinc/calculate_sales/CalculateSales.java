@@ -192,11 +192,11 @@ public class CalculateSales {
 			}
 		}
 
-		BufferedReader br = null;
 		//rcdFilesに複数の売上ファイルの情報を格納しているので、その数だけ繰り返します。
 		for (int i = 0; i < rcdFiles.size(); i++) {
 			//支店定義ファイル読み込み(readFileメソッド)を参考に売上ファイルの中身を読み込みます。
 			//売上ファイルの1行目には支店コード、2行目には売上金額が入っています。
+			BufferedReader br = null;
 			try {
 				FileReader fr = new FileReader(rcdFiles.get(i));
 				br = new BufferedReader(fr);
